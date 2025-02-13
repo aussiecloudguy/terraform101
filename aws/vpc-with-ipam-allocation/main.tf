@@ -65,9 +65,11 @@ resource "aws_vpc_ipam_pool_cidr" "example" {
 resource "aws_vpc" "example" {
   ipv4_ipam_pool_id   = aws_vpc_ipam_pool.example.id
   ipv4_netmask_length = var.vpc_netmask
+  
   depends_on = [
     aws_vpc_ipam_pool_cidr.example
   ]
+  
 
   enable_dns_support   = true
   enable_dns_hostnames = true
@@ -136,7 +138,7 @@ resource "aws_default_route_table" "public" {
 }
 
 resource "aws_route" "public_internet_gateway" {
-  count                  = "${length(data.aws_subnet.public)}"
+  count                  = "${length(local.public_subnets)}"
   route_table_id         = "${aws_default_route_table.public.id}"
   destination_cidr_block = "0.0.0.0/0"
   gateway_id             = "${aws_internet_gateway.vpc_ig.id}"
@@ -147,7 +149,7 @@ resource "aws_route" "public_internet_gateway" {
 }
 
 resource "aws_route_table_association" "public" {
-  count          = "${length(data.aws_subnet.public)}"
+  count          = "${length(local.public_subnets)}"
   subnet_id      = "${element(aws_subnet.public.*.id, count.index)}"
   route_table_id = "${aws_default_route_table.public.id}"
 }
@@ -161,7 +163,7 @@ resource "aws_route_table" "private" {
 }
 
 resource "aws_route_table_association" "private" {
-  count          = "${length(data.aws_subnet.private)}"
+  count          = "${length(local.private_subnets)}"
   subnet_id      = "${element(aws_subnet.private.*.id, count.index)}"
   route_table_id = "${aws_route_table.private.id}"
 }
