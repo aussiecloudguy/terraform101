@@ -1,8 +1,25 @@
-# Configure the AWS provider
-provider "aws" {
-  region = "${var.region}"
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.86.1"
+    }
+  }
 }
 
+# Configure the AWS provider
+provider "aws" {
+  region = "${var.region}" # region = "ap-southeast-2"
+  profile = "prod"
+}
+
+provider "aws" {
+  assume_role {
+    role_arn     = "arn:aws:iam::123456789012:role/ROLE_NAME"
+    session_name = "SESSION_NAME"
+    external_id  = "EXTERNAL_ID"
+  }
+}
 # Create a Security Group for an EC2 instance
 resource "aws_security_group" "instance" {
   name = "terraform-example-instance"
@@ -58,6 +75,15 @@ data "aws_ami" "base_ami" {
     values = ["hvm"]
   }
  
+}
+
+resource "aws_instance" "web" {
+  ami           = data.aws_ami.base_ami.image_id
+  instance_type = "t3.micro"
+
+  tags = {
+    Name = "HelloWorld"
+  }
 }
 
 # Create an EC2 instance

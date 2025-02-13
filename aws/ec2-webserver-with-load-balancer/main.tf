@@ -11,7 +11,8 @@ resource "aws_security_group" "instance" {
     from_port	  = "${var.server_port}"
     to_port	    = "${var.server_port}"
     protocol	  = "tcp"
-    cidr_blocks	= ["0.0.0.0/0"]
+    security_groups = [aws_security_group.lb_sg.id]
+    
   }
 
   egress {
@@ -20,6 +21,20 @@ resource "aws_security_group" "instance" {
     protocol	  = -1
     cidr_blocks	= ["0.0.0.0/0"]
   }
+}
+
+# Create a Security Group for an EC2 instance
+resource "aws_security_group" "lb_sg" {
+  name = "terraform-example-loadbalancer"
+  vpc_id = "${var.vpc_id}"  
+  ingress {
+    from_port	  = "${var.server_port}"
+    to_port	    = "${var.server_port}"
+    protocol	  = "tcp"
+    cidr_blocks	= ["0.0.0.0/0"]
+  }
+
+  
 }
 
 # Get the Latest Amazon Linux AMI
@@ -45,6 +60,17 @@ data "aws_ami" "base_ami" {
  
 }
 
+data "aws_subnet_ids" "selected" { 
+  vpc_id = var.vpc_id
+  
+  filter { 
+    name = "tag:Name" 
+    values = ["*public*"] 
+  } 
+
+    
+}
+
 # Create an EC2 instance
 resource "aws_instance" "example" {
   ami                     = data.aws_ami.base_ami.image_id 
@@ -67,7 +93,24 @@ resource "aws_instance" "example" {
   }
 }
 
-# Output variable: Public IP address
+resource "aws_lb" "test" {
+  name               = "test-lb-tf"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.lb_sg.id]
+  
+  subnets            = [for subnet in aws_subnet. .public : subnet.id]
+  
+
+}
+
+# Output variables
+output "securitygroup_ip" {
+  value = "${aws_security_group.instance.id}"
+}
+output "instance_ip" {
+  value = "${aws_instance.example.id}"
+}
 output "public_ip" {
   value = "${aws_instance.example.public_ip}"
 }

@@ -1,0 +1,8 @@
+ec2_instance_type = ""
+vpc_id = ""
+subnet_id = ""
+region = ""
+rdp_ingress_cidr = ["0.0.0.0/0"]   
+rdp_ingress_port = "3389"
+windows_server_version = "Windows 2025"
+keypair_name = ""
