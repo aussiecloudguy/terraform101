@@ -3,6 +3,11 @@ variable "region" {
   default = "ap-southeast-2"
 }
 
+variable "aws_profile" {
+  description = "The Credential profile for the account"
+  
+}
+
 # Input variable: server port
 variable "server_port" {
   description = "The port the server will use for HTTP requests"
@@ -11,6 +16,13 @@ variable "server_port" {
 
 # Input variable: server port
 variable "subnet_id" {
+  description = "The Subnet to Provision the Instance into"
+
+}
+
+# Input variable: server port
+variable "lb_subnet_ids" {
+  type = list(string)
   description = "The Subnet to Provision the Instance into"
 
 }

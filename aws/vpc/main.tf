@@ -1,3 +1,19 @@
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.86.1"
+    }
+  }
+}
+
+# Configure the AWS provider
+provider "aws" {
+  region = "${var.region}" # region = "ap-southeast-2"
+  profile = "${var.aws_profile}"
+}
+
+
 locals {
   public_subnets = {
     "${var.region}a" = "${var.public_subnet_CIDR_a}"
@@ -11,7 +27,7 @@ locals {
   }
 }
 
-resource "aws_vpc" "vpc" {
+resource "aws_vpc" "example" {
   cidr_block = "${var.vpc_CIDR}"
 
   enable_dns_support   = true
@@ -23,7 +39,7 @@ resource "aws_vpc" "vpc" {
 }
 
 resource "aws_internet_gateway" "vpc_ig" {
-  vpc_id = "${aws_vpc.vpc.id}"
+  vpc_id = "${aws_vpc.example.id}"
 
   tags = {
     Name = "${var.vpc_name}-internet-gateway"
@@ -33,7 +49,7 @@ resource "aws_internet_gateway" "vpc_ig" {
 resource "aws_subnet" "public" {
   count      = "${length(local.public_subnets)}"
   cidr_block = "${element(values(local.public_subnets), count.index)}"
-  vpc_id     = "${aws_vpc.vpc.id}"
+  vpc_id     = "${aws_vpc.example.id}"
 
   map_public_ip_on_launch = true
   availability_zone       = "${element(keys(local.public_subnets), count.index)}"
@@ -47,7 +63,7 @@ resource "aws_subnet" "public" {
 resource "aws_subnet" "private" {
   count      = "${length(local.private_subnets)}"
   cidr_block = "${element(values(local.private_subnets), count.index)}"
-  vpc_id     = "${aws_vpc.this.id}"
+  vpc_id     = "${aws_vpc.example.id}"
 
   map_public_ip_on_launch = true
   availability_zone       = "${element(keys(local.private_subnets), count.index)}"
@@ -59,7 +75,7 @@ resource "aws_subnet" "private" {
 }
 
 resource "aws_default_route_table" "public" {
-  default_route_table_id = "${aws_vpc.this.main_route_table_id}"
+  default_route_table_id = "${aws_vpc.example.main_route_table_id}"
 
   tags = {
     Name = "${var.vpc_name}-public"
@@ -70,7 +86,7 @@ resource "aws_route" "public_internet_gateway" {
   count                  = "${length(local.public_subnets)}"
   route_table_id         = "${aws_default_route_table.public.id}"
   destination_cidr_block = "0.0.0.0/0"
-  gateway_id             = "${aws_internet_gateway.this.id}"
+  gateway_id             = "${aws_internet_gateway.vpc_ig.id}"
 
   timeouts {
     create = "5m"
@@ -84,7 +100,7 @@ resource "aws_route_table_association" "public" {
 }
 
 resource "aws_route_table" "private" {
-  vpc_id = "${aws_vpc.this.id}"
+  vpc_id = "${aws_vpc.example.id}"
 
   tags = {
     Name = "${var.vpc_name}-private"

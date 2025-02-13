@@ -18,10 +18,10 @@ resource "aws_security_group" "instance" {
   name = "terraform-example-instance"
   vpc_id = "${var.vpc_id}"  
   ingress {
-    from_port	  = "${var.rdp_ingress_port}"
-    to_port	    = "${var.rdp_ingress_port}"
+    from_port	  = "${var.ssh_ingress_port}"
+    to_port	    = "${var.ssh_ingress_port}"
     protocol	  = "tcp"
-    cidr_blocks = "${var.rdp_ingress_cidr}"
+    cidr_blocks = "${var.ssh_ingress_cidr}"
     
   }
 
@@ -34,7 +34,7 @@ resource "aws_security_group" "instance" {
 }
 
 
-# Get the Latest Windows AMI
+# Get the Latest Amazon Linux AMI
 
 data "aws_ami" "base_ami" {
   most_recent      = true
@@ -42,7 +42,7 @@ data "aws_ami" "base_ami" {
  
   filter {
     name   = "name"
-    values = ["Windows_Server-${var.windows_server_version}-English-Full-Base-*"]
+    values = ["al2023-ami-2023.*-x86_64"]
   }
  
   filter {

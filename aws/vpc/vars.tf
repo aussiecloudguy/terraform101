@@ -3,6 +3,11 @@ variable "region" {
   default = "ap-southeast-2"
 }
 
+variable "aws_profile" {
+  description = "The Credential profile for the account"
+  
+}
+
 variable "vpc_name" {
   description = "The VPC Name (to be suffixed with -vpc"
   default = "vpc"
